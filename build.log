@@ -1,0 +1,19 @@
+▲ Next.js 16.2.10 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 20.7s
+  Running TypeScript ...
+Failed to type check.
+
+./src/components/landing/Hero.tsx:85:75
+Type error: Type '{ children: Element; size: "lg"; className: string; asChild: true; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.
+
+  [90m83 |[0m ...[32m flex-col items-center justify-center gap-4 sm:flex-row"[0m
+  [90m84 |[0m ...
+[31m[1m>[0m [90m85 |[0m ...ssName=[32m"glow-sm group h-12 px-8 text-base"[0m asChild>
+  [90m   |[0m                                               [31m[1m^[0m
+  [90m86 |[0m ...[32mer"[0m>
+  [90m87 |[0m ...
+  [90m88 |[0m ...Name=[32m"ml-2 size-4 transition-transform group-hover:translate-x-1"[0m />
+Next.js build worker exited with code: 1 and signal: null
