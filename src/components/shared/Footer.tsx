@@ -1,5 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
+import {
+  TwitterIcon,
+  GithubIcon,
+  InstagramIcon,
+} from "@/components/shared/premium-icons";
 
 const FOOTER_LINKS = {
   Product: [
@@ -31,9 +36,10 @@ export function Footer() {
               <Image
                 src="/sylabixlogo.png"
                 alt="Syllabix"
-                width={28}
-                height={28}
-                className="size-6 object-contain"
+                width={40}
+                height={40}
+                className="h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]"
+                unoptimized
               />
               <span className="text-lg font-bold tracking-tight text-foreground">
                 Syllabix
@@ -43,6 +49,33 @@ export function Footer() {
               Master your syllabus with AI-powered intelligence.
               Transform your study materials into adaptive learning plans.
             </p>
+            {/* Social links */}
+            <div className="mt-5 flex items-center gap-3">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex size-9 items-center justify-center rounded-lg bg-white/5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
+              >
+                <TwitterIcon />
+              </a>
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex size-9 items-center justify-center rounded-lg bg-white/5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
+              >
+                <GithubIcon />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex size-9 items-center justify-center rounded-lg bg-white/5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
+              >
+                <InstagramIcon />
+              </a>
+            </div>
           </div>
 
           {/* Link columns */}

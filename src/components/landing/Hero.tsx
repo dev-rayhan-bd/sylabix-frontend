@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { HiOutlineBolt, HiArrowRight } from "react-icons/hi2";
+import { buttonVariants } from "@/components/ui/button";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -43,9 +43,9 @@ export function Hero() {
           initial="hidden"
           animate="visible"
           custom={0}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary badge-shimmer"
         >
-          <Sparkles className="size-3.5" />
+          <HiOutlineBolt className="size-3.5" />
           AI-Powered Study Planning
         </motion.div>
 
@@ -90,7 +90,7 @@ export function Hero() {
             })}
           >
             Get Started Free
-            <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+            <HiArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
             href="#features"

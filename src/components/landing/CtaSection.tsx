@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { HiOutlineBolt, HiArrowRight } from "react-icons/hi2";
+import { buttonVariants } from "@/components/ui/button";
 
 export function CtaSection() {
   return (
@@ -22,7 +22,7 @@ export function CtaSection() {
         className="gradient-border mx-auto max-w-3xl rounded-3xl p-0.5"
       >
         <div className="rounded-[calc(1.5rem-1px)] bg-card px-8 py-16 text-center sm:px-16">
-          <Sparkles className="mx-auto size-8 text-primary" />
+          <HiOutlineBolt className="mx-auto size-8 text-primary" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Ready to Master Your Syllabus?
           </h2>
@@ -39,7 +39,7 @@ export function CtaSection() {
               })}
             >
               Get Started Free
-              <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+              <HiArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="#features"

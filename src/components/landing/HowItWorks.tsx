@@ -1,12 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Upload, Brain, GraduationCap } from "lucide-react";
+import {
+  UploadCloudIcon,
+  NeuralBrainIcon,
+  TrophyIcon,
+} from "@/components/shared/premium-icons";
 
 const STEPS = [
   {
     step: 1,
-    icon: Upload,
+    icon: UploadCloudIcon,
     title: "Upload Your Syllabus",
     description:
       "Drop any PDF syllabus onto Syllabix. Our AI instantly reads and structures it — extracting topics, deadlines, and key concepts.",
@@ -14,7 +18,7 @@ const STEPS = [
   },
   {
     step: 2,
-    icon: Brain,
+    icon: NeuralBrainIcon,
     title: "AI Generates Your Plan",
     description:
       "An adaptive study schedule is created for you, with smart flashcards, priority topics, and daily goals tailored to your timeline.",
@@ -22,7 +26,7 @@ const STEPS = [
   },
   {
     step: 3,
-    icon: GraduationCap,
+    icon: TrophyIcon,
     title: "Study & Track Progress",
     description:
       "Follow your personalized plan, chat with AI about any topic, and watch your mastery grow with real-time analytics.",

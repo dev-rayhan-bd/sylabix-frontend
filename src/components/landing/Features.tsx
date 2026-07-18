@@ -2,52 +2,52 @@
 
 import { motion } from "framer-motion";
 import {
-  FileText,
-  Calendar,
-  MessageSquare,
-  Brain,
-  BarChart3,
-  Shield,
-} from "lucide-react";
+  DocumentScanIcon,
+  CalendarSyncIcon,
+  ChatAiIcon,
+  FlashcardIcon,
+  AnalyticsIcon,
+  ShieldLockIcon,
+} from "@/components/shared/premium-icons";
 
 const FEATURES = [
   {
-    icon: FileText,
+    icon: DocumentScanIcon,
     title: "PDF Syllabus Analysis",
     description:
       "Upload any syllabus PDF and our AI instantly extracts topics, deadlines, and key concepts into a structured study plan.",
     gradient: "from-emerald-500 to-teal-500",
   },
   {
-    icon: Calendar,
+    icon: CalendarSyncIcon,
     title: "Adaptive Scheduling",
     description:
       "Your study schedule adapts in real-time based on your progress, upcoming exams, and available study time.",
     gradient: "from-teal-500 to-cyan-500",
   },
   {
-    icon: MessageSquare,
+    icon: ChatAiIcon,
     title: "RAG-based AI Chat",
     description:
       "Ask questions about your course material and get instant answers powered by Retrieval-Augmented Generation.",
     gradient: "from-cyan-500 to-sky-500",
   },
   {
-    icon: Brain,
+    icon: FlashcardIcon,
     title: "Smart Flashcards",
     description:
       "Auto-generated flashcards from your syllabus with spaced repetition to maximize retention.",
     gradient: "from-emerald-400 to-teal-500",
   },
   {
-    icon: BarChart3,
+    icon: AnalyticsIcon,
     title: "Progress Analytics",
     description:
       "Visual dashboards showing your study hours, topic mastery, and predicted exam readiness.",
     gradient: "from-teal-400 to-cyan-500",
   },
   {
-    icon: Shield,
+    icon: ShieldLockIcon,
     title: "Secure & Private",
     description:
       "Your data is encrypted end-to-end. We never share your study materials with third parties.",

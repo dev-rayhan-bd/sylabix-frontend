@@ -8,7 +8,14 @@ import { toast } from "sonner";
 /* ─── Types ─────────────────────────────────────────────── */
 
 type LoginPayload = { email: string; password: string };
-type RegisterPayload = { name: string; email: string; password: string };
+type RegisterPayload = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  institution: string;
+};
+type OtpVerifyPayload = { email: string; otp: string };
 type AuthResponse = { user: User; token: string };
 
 /* ─── Login ─────────────────────────────────────────────── */
@@ -43,6 +50,24 @@ export function useRegister() {
     },
     onError: (err: Error) => {
       toast.error(err.message || "Registration failed. Please try again.");
+    },
+  });
+}
+
+/* ─── OTP Verification ──────────────────────────────────── */
+
+export function useVerifyOtp() {
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  return useMutation({
+    mutationFn: (payload: OtpVerifyPayload) =>
+      post<AuthResponse>("/auth/regOtpVerify", payload),
+    onSuccess: (res) => {
+      setAuth(res.user, res.token);
+      toast.success("Email verified! Welcome to Syllabix.");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Invalid or expired code. Please try again.");
     },
   });
 }
