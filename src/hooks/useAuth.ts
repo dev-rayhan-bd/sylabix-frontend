@@ -1,9 +1,9 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuthStore, type User } from "@/src/store/auth-store";
-import { post, postFormData } from "@/src/services/api";
+import { post, postFormData, get, putFormData, del } from "@/src/services/api";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 
@@ -216,4 +216,67 @@ export function useLogout() {
     logout();
     toast.success("Logged out successfully.");
   };
+}
+
+/* ─── Profile ─────────────────────────────────────────── */
+
+type ProfileResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: ApiUser;
+};
+
+export type EditProfilePayload = {
+  firstName?: string;
+  lastName?: string;
+  institution?: string;
+  image?: File | null;
+};
+
+export function useMyProfile(enabled = true) {
+  return useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => get<ProfileResponse>("/user/my-profile"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  const updateUser = useAuthStore((s) => s.updateUser);
+
+  return useMutation({
+    mutationFn: (payload: EditProfilePayload) => {
+      const { image, ...jsonData } = payload;
+      return putFormData<ProfileResponse>("/user/edit-profile", jsonData, image);
+    },
+    onSuccess: (res) => {
+      const updated = mapUser(res.data);
+      updateUser(updated);
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      toast.success("Profile updated successfully!");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Failed to update profile."));
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+
+  return useMutation({
+    mutationFn: () => del<MessageResponse>("/user/delete-account"),
+    onSuccess: () => {
+      logout();
+      toast.success("Account deleted. We\'re sorry to see you go.");
+      router.push("/");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Failed to delete account."));
+    },
+  });
 }

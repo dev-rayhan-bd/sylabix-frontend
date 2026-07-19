@@ -66,6 +66,19 @@ export async function put<T>(url: string, body?: unknown) {
   return data;
 }
 
+export async function putFormData<
+  T>(url: string, jsonData: Record<string, unknown>, imageFile?: File | null) {
+  const formData = new FormData();
+  formData.append("body", JSON.stringify(jsonData));
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+  const { data } = await api.put<T>(url, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
 export async function del<T>(url: string) {
   const { data } = await api.delete<T>(url);
   return data;

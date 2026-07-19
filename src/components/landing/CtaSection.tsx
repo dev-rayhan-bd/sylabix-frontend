@@ -32,7 +32,7 @@ export function CtaSection() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/register"
+              href="/auth/register"
               className={buttonVariants({
                 size: "lg",
                 className: "glow-sm group h-12 px-8 text-base",

@@ -51,14 +51,20 @@ export default function RegisterPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mb-10"
           >
-            <Image
-              src="/sylabixLogo.png"
-              alt="Syllabix"
-              width={220}
-              height={64}
-              className="h-16 w-auto drop-shadow-[0_0_30px_rgba(52,211,153,0.3)]"
-              priority
-            />
+            <Link href="/" className="group flex items-center gap-3">
+              <Image
+                src="/sylabixlogo.png"
+                alt="Syllabix"
+                width={48}
+                height={48}
+                className="h-14 w-auto object-contain drop-shadow-[0_0_30px_rgba(52,211,153,0.3)] transition-transform group-hover:scale-105"
+                priority
+                unoptimized
+              />
+              <span className="text-3xl font-bold tracking-tight text-foreground drop-shadow-[0_0_20px_rgba(52,211,153,0.2)]">
+                Syllabix
+              </span>
+            </Link>
           </motion.div>
 
           <motion.h2
@@ -116,7 +122,10 @@ export default function RegisterPage() {
             transition={{ duration: 0.4 }}
             className="mb-8 text-center lg:hidden"
           >
-            <Image src="/sylabixLogo.png" alt="Syllabix" width={160} height={44} className="mx-auto h-10 w-auto" priority />
+            <Link href="/" className="group inline-flex items-center gap-2">
+              <Image src="/sylabixlogo.png" alt="Syllabix" width={32} height={32} className="h-8 w-auto object-contain transition-transform group-hover:scale-105" priority unoptimized />
+              <span className="text-xl font-bold tracking-tight text-foreground">Syllabix</span>
+            </Link>
           </motion.div>
 
           {/* Header */}
