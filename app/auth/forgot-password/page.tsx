@@ -1,37 +1,26 @@
 "use client";
 
-import { RegisterForm } from "@/src/components/auth/RegisterForm";
+import { ForgotPasswordForm } from "@/src/components/auth/ForgotPasswordForm";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { HiOutlineShieldCheck, HiOutlineBolt, HiOutlineUserGroup } from "react-icons/hi2";
+import { HiOutlineLockClosed, HiOutlineShieldCheck } from "react-icons/hi2";
 
-const highlights = [
-  { icon: HiOutlineBolt, text: "AI-generated study schedules" },
-  { icon: HiOutlineShieldCheck, text: "Secure & private data" },
-  { icon: HiOutlineUserGroup, text: "Join 10,000+ students" },
-];
-
-export default function RegisterPage() {
+export default function ForgotPasswordPage() {
   return (
     <div className="relative grid min-h-screen lg:grid-cols-[1fr_1fr]">
       {/* ─── Brand Panel (Left) ─────────────────────── */}
       <div className="relative hidden overflow-hidden bg-linear-to-br from-[#0a0f1a] via-[#0d1a1a] to-[#0a0f1a] lg:flex lg:flex-col lg:items-center lg:justify-center">
         {/* Animated orbs */}
         <motion.div
-          className="absolute -right-32 -top-32 h-125 w-125 rounded-full bg-primary/15 blur-[120px]"
-          animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
+          className="absolute -left-32 -bottom-32 h-125 w-125 rounded-full bg-primary/15 blur-[120px]"
+          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -bottom-24 -left-24 h-100 w-100 rounded-full bg-emerald-500/10 blur-[100px]"
-          animate={{ x: [0, 30, 0], y: [0, -40, 0] }}
+          className="absolute -right-24 top-1/4 h-100 w-100 rounded-full bg-emerald-500/10 blur-[100px]"
+          animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute left-1/3 top-1/2 h-62.5 w-62.5 rounded-full bg-teal-500/8 blur-[80px]"
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
         />
 
         {/* Grid pattern */}
@@ -67,9 +56,9 @@ export default function RegisterPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mb-4 text-4xl font-bold tracking-tight text-foreground"
           >
-            Start Your Journey
+            Secure Account
             <br />
-            <span className="text-gradient-glow">to Academic Excellence</span>
+            <span className="text-gradient-glow">Recovery</span>
           </motion.h2>
 
           <motion.p
@@ -78,23 +67,26 @@ export default function RegisterPage() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mb-10 max-w-md text-lg text-muted-foreground"
           >
-            Create your free account and experience the future of studying with AI-driven insights.
+            We&apos;ll get you back into your account in just a few steps. Your data is safe with us.
           </motion.p>
 
-          {/* Highlights */}
+          {/* Trust badges */}
           <div className="flex flex-col gap-3">
-            {highlights.map((h, i) => (
+            {[
+              { icon: HiOutlineLockClosed, text: "End-to-end encrypted" },
+              { icon: HiOutlineShieldCheck, text: "Verified identity protection" },
+            ].map((item, i) => (
               <motion.div
-                key={h.text}
+                key={item.text}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
                 className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/3 px-5 py-3 backdrop-blur-sm"
               >
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <h.icon className="size-5 text-primary" />
+                  <item.icon className="size-5 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-foreground/80">{h.text}</span>
+                <span className="text-sm font-medium text-foreground/80">{item.text}</span>
               </motion.div>
             ))}
           </div>
@@ -108,7 +100,7 @@ export default function RegisterPage() {
           <div className="absolute bottom-1/4 right-1/4 h-62.5 w-62.5 rounded-full bg-emerald-500/8 blur-[80px]" />
         </div>
 
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-md">
           {/* Mobile logo */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -127,7 +119,7 @@ export default function RegisterPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-3xl font-bold tracking-tight text-foreground"
             >
-              Create your account
+              Reset your password
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -135,7 +127,7 @@ export default function RegisterPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-2 text-muted-foreground"
             >
-              Join thousands of students studying smarter with AI
+              We&apos;ll help you get back into your account
             </motion.p>
           </div>
 
@@ -147,7 +139,7 @@ export default function RegisterPage() {
             className="relative rounded-3xl p-px gradient-border"
           >
             <div className="glass-strong rounded-[calc(1.875rem-1px)] p-8">
-              <RegisterForm />
+              <ForgotPasswordForm />
             </div>
           </motion.div>
 
@@ -158,7 +150,7 @@ export default function RegisterPage() {
             transition={{ duration: 0.5, delay: 0.5 }}
             className="mt-8 text-center text-sm text-muted-foreground"
           >
-            Already have an account?{" "}
+            Remember your password?{" "}
             <Link href="/auth/login" className="font-medium text-primary transition-colors hover:underline">
               Sign In
             </Link>

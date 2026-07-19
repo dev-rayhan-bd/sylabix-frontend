@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "@/src/store/auth-store";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1",
   headers: { "Content-Type": "application/json" },
   timeout: 15_000,
 });
@@ -38,6 +38,26 @@ export async function get<T>(url: string, params?: Record<string, unknown>) {
 
 export async function post<T>(url: string, body?: unknown) {
   const { data } = await api.post<T>(url, body);
+  return data;
+}
+
+/**
+ * POST with multipart/form-data (used for register with optional image).
+ * The backend expects a `body` field containing a JSON string and an optional `image` file field.
+ */
+export async function postFormData<T>(
+  url: string,
+  jsonData: Record<string, unknown>,
+  imageFile?: File | null
+) {
+  const formData = new FormData();
+  formData.append("body", JSON.stringify(jsonData));
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+  const { data } = await api.post<T>(url, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data;
 }
 

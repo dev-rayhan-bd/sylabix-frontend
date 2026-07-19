@@ -1,9 +1,11 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useAuthStore, type User } from "@/src/store/auth-store";
-import { post } from "@/src/services/api";
+import { post, postFormData } from "@/src/services/api";
 import { toast } from "sonner";
+import type { AxiosError } from "axios";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -14,60 +16,193 @@ type RegisterPayload = {
   email: string;
   password: string;
   institution: string;
+  image?: File | null;
 };
 type OtpVerifyPayload = { email: string; otp: string };
-type AuthResponse = { user: User; token: string };
+type ResendOtpPayload = { email: string };
+type ForgotPasswordPayload = { email: string };
+type ResetPasswordPayload = { email: string; newPassword: string };
+
+/** Actual shape returned by the backend */
+type ApiUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+};
+
+/** Auth response with tokens (login, verify OTP) */
+type AuthResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: ApiUser;
+  };
+};
+
+/** Simple message response (forgot password, reset password, resend OTP) */
+type MessageResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: { message?: string };
+};
+
+/** Register returns user directly (no tokens) */
+type RegisterResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: ApiUser;
+};
+
+/** Map backend user to our User type */
+function mapUser(apiUser: ApiUser): User {
+  return {
+    id: apiUser._id,
+    name: `${apiUser.firstName} ${apiUser.lastName}`,
+    email: apiUser.email,
+    avatar: apiUser.avatar,
+    createdAt: apiUser.createdAt,
+  };
+}
+
+/* ─── Helper ────────────────────────────────────────────── */
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  const axiosErr = err as AxiosError<{ message?: string; error?: string }>;
+  return (
+    axiosErr?.response?.data?.message ??
+    axiosErr?.response?.data?.error ??
+    axiosErr?.message ??
+    fallback
+  );
+}
 
 /* ─── Login ─────────────────────────────────────────────── */
 
 export function useLogin() {
+  const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   return useMutation({
     mutationFn: (payload: LoginPayload) =>
       post<AuthResponse>("/auth/login", payload),
     onSuccess: (res) => {
-      setAuth(res.user, res.token);
+      setAuth(mapUser(res.data.user), res.data.accessToken);
       toast.success("Welcome back!");
+      router.push("/dashboard");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Login failed. Please try again.");
+      toast.error(getErrorMessage(err, "Login failed. Please try again."));
     },
   });
 }
 
 /* ─── Register ──────────────────────────────────────────── */
+// Register API returns the user object directly (no tokens).
+// Tokens come after OTP verification via useVerifyOtp.
 
 export function useRegister() {
-  const setAuth = useAuthStore((s) => s.setAuth);
-
   return useMutation({
-    mutationFn: (payload: RegisterPayload) =>
-      post<AuthResponse>("/auth/register", payload),
-    onSuccess: (res) => {
-      setAuth(res.user, res.token);
-      toast.success("Account created successfully!");
+    mutationFn: (payload: RegisterPayload) => {
+      const { image, ...jsonData } = payload;
+      return postFormData<RegisterResponse>("/auth/register", jsonData, image);
+    },
+    onSuccess: () => {
+      toast.success("Account created! Please verify your email.");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Registration failed. Please try again.");
+      toast.error(getErrorMessage(err, "Registration failed. Please try again."));
     },
   });
 }
 
-/* ─── OTP Verification ──────────────────────────────────── */
+/* ─── OTP Verification (Registration) ───────────────────── */
 
 export function useVerifyOtp() {
+  const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   return useMutation({
     mutationFn: (payload: OtpVerifyPayload) =>
       post<AuthResponse>("/auth/regOtpVerify", payload),
     onSuccess: (res) => {
-      setAuth(res.user, res.token);
+      setAuth(mapUser(res.data.user), res.data.accessToken);
       toast.success("Email verified! Welcome to Syllabix.");
+      router.push("/dashboard");
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Invalid or expired code. Please try again.");
+      toast.error(getErrorMessage(err, "Invalid or expired code. Please try again."));
+    },
+  });
+}
+
+/* ─── Resend OTP ────────────────────────────────────────── */
+
+export function useResendOtp() {
+  return useMutation({
+    mutationFn: (payload: ResendOtpPayload) =>
+      post<MessageResponse>("/auth/resendOtp", payload),
+    onSuccess: (res) => {
+      toast.success(res.message || "OTP resent successfully!");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Failed to resend OTP. Please try again."));
+    },
+  });
+}
+
+/* ─── Forgot Password (send OTP) ───────────────────────── */
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordPayload) =>
+      post<MessageResponse>("/auth/forgotPass", payload),
+    onSuccess: (res) => {
+      toast.success(res.message || "OTP sent to your email!");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Failed to send OTP. Please try again."));
+    },
+  });
+}
+
+/* ─── Verify OTP (Forgot Password) ──────────────────────── */
+
+export function useVerifyForgotOtp() {
+  return useMutation({
+    mutationFn: (payload: OtpVerifyPayload) =>
+      post<MessageResponse>("/auth/verifyOtp", payload),
+    onSuccess: (res) => {
+      toast.success(res.message || "OTP verified!");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Invalid or expired code. Please try again."));
+    },
+  });
+}
+
+/* ─── Reset Password ────────────────────────────────────── */
+
+export function useResetPassword() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (payload: ResetPasswordPayload) =>
+      post<MessageResponse>("/auth/resetPass", payload),
+    onSuccess: (res) => {
+      toast.success(res.message || "Password reset successful!");
+      router.push("/auth/login");
+    },
+    onError: (err: Error) => {
+      toast.error(getErrorMessage(err, "Failed to reset password. Please try again."));
     },
   });
 }

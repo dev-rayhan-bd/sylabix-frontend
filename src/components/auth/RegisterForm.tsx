@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { HiOutlineCamera } from "react-icons/hi2";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { HiOutlineEye, HiOutlineEyeSlash, HiOutlineArrowLeft } from "react-icons/hi2";
 
 import { registerSchema, otpSchema, type RegisterInput, type OtpInput } from "./auth-schemas";
-import { useRegister, useVerifyOtp } from "@/src/hooks/useAuth";
+import { useRegister, useVerifyOtp, useResendOtp } from "@/src/hooks/useAuth";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import {
-  Input,
   Form,
   FormField,
   FormItem,
@@ -23,15 +22,38 @@ import {
 } from "@/components/ui/form";
 
 type Step = 1 | 2;
+const RESEND_COOLDOWN = 60; // seconds
 
 export function RegisterForm() {
-  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { mutate: register, isPending: isRegistering } = useRegister();
   const { mutate: verifyOtp, isPending: isVerifying } = useVerifyOtp();
+  const { mutate: resendOtp, isPending: isResending } = useResendOtp();
+
+  /* ── Countdown timer ──────────────────────────────────── */
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleResendOtp = useCallback(() => {
+    if (countdown > 0 || isResending) return;
+    resendOtp(
+      { email },
+      {
+        onSettled: () => {
+          setCountdown(RESEND_COOLDOWN);
+        },
+      }
+    );
+  }, [email, countdown, isResending, resendOtp]);
 
   const registerForm = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -51,22 +73,17 @@ export function RegisterForm() {
   });
 
   const onRegisterSubmit = (data: RegisterInput) => {
-    register(data, {
-      onSuccess: (res) => {
+    register({ ...data, image: imageFile ?? undefined }, {
+      onSuccess: () => {
         setEmail(data.email);
         setStep(2);
-        toast.success("Verification code sent to your email");
+        setCountdown(RESEND_COOLDOWN);
       },
     });
   };
 
   const onOtpSubmit = (data: OtpInput) => {
-    verifyOtp({ email, otp: data.otp }, {
-      onSuccess: () => {
-        router.push("/dashboard");
-        router.refresh();
-      },
-    });
+    verifyOtp({ email, otp: data.otp });
   };
 
   const goBack = () => {
@@ -124,12 +141,7 @@ export function RegisterForm() {
                       <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="John"
-                            autoComplete="given-name"
-                            {...field}
-                            disabled={isRegistering}
-                          />
+                          <Input placeholder="John" autoComplete="given-name" {...field} disabled={isRegistering} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -142,12 +154,7 @@ export function RegisterForm() {
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Doe"
-                            autoComplete="family-name"
-                            {...field}
-                            disabled={isRegistering}
-                          />
+                          <Input placeholder="Doe" autoComplete="family-name" {...field} disabled={isRegistering} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -163,13 +170,7 @@ export function RegisterForm() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="you@university.edu"
-                          autoComplete="email"
-                          {...field}
-                          disabled={isRegistering}
-                        />
+                        <Input type="email" placeholder="you@university.edu" autoComplete="email" {...field} disabled={isRegistering} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -184,12 +185,7 @@ export function RegisterForm() {
                     <FormItem>
                       <FormLabel>Institution</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="University of Technology"
-                          autoComplete="organization"
-                          {...field}
-                          disabled={isRegistering}
-                        />
+                        <Input placeholder="University of Technology" autoComplete="organization" {...field} disabled={isRegistering} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -219,11 +215,7 @@ export function RegisterForm() {
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                             aria-label={showPassword ? "Hide password" : "Show password"}
                           >
-                            {showPassword ? (
-                              <HiOutlineEyeSlash className="size-5" />
-                            ) : (
-                              <HiOutlineEye className="size-5" />
-                            )}
+                            {showPassword ? <HiOutlineEyeSlash className="size-5" /> : <HiOutlineEye className="size-5" />}
                           </button>
                         </div>
                       </FormControl>
@@ -240,18 +232,55 @@ export function RegisterForm() {
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          autoComplete="new-password"
-                          {...field}
-                          disabled={isRegistering}
-                        />
+                        <Input type={showPassword ? "text" : "password"} placeholder="••••••••" autoComplete="new-password" {...field} disabled={isRegistering} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Profile Image (optional) */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Profile Photo (optional)</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-white/10 bg-white/5">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="size-full object-cover" />
+                      ) : (
+                        <HiOutlineCamera className="size-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground">
+                        <HiOutlineCamera className="size-4" />
+                        <span>{imageFile ? imageFile.name : "Choose a photo"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={isRegistering}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            setImageFile(file);
+                            setImagePreview(file ? URL.createObjectURL(file) : null);
+                          }}
+                        />
+                      </label>
+                      {imageFile && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImagePreview(null);
+                          }}
+                          className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Submit */}
                 <motion.button
@@ -263,32 +292,15 @@ export function RegisterForm() {
                 >
                   <AnimatePresence mode="wait">
                     {isRegistering ? (
-                      <motion.span
-                        key="loading"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <svg
-                          className="animate-spin size-5"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
+                      <motion.span key="loading" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                           <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
                           <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
                         </svg>
                         Creating account...
                       </motion.span>
                     ) : (
-                      <motion.span
-                        key="default"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
+                      <motion.span key="default" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                         Create Account
                       </motion.span>
                     )}
@@ -309,9 +321,7 @@ export function RegisterForm() {
             transition={{ duration: 0.2 }}
           >
             <div className="mb-6 text-center">
-              <p className="text-muted-foreground">
-                We sent a 6-digit code to
-              </p>
+              <p className="text-muted-foreground">We sent a 6-digit code to</p>
               <p className="font-medium text-foreground">{email}</p>
             </div>
 
@@ -349,37 +359,36 @@ export function RegisterForm() {
                 >
                   <AnimatePresence mode="wait">
                     {isVerifying ? (
-                      <motion.span
-                        key="loading"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <svg
-                          className="animate-spin size-5"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
+                      <motion.span key="loading" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                           <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
                           <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
                         </svg>
                         Verifying...
                       </motion.span>
                     ) : (
-                      <motion.span
-                        key="default"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
+                      <motion.span key="default" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                         Verify & Continue
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </motion.button>
+
+                {/* Resend OTP */}
+                <div className="text-center text-sm text-muted-foreground">
+                  {countdown > 0 ? (
+                    <p>Resend code in <span className="font-medium text-foreground">{countdown}s</span></p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isResending}
+                      className="text-primary hover:underline font-medium transition-colors"
+                    >
+                      {isResending ? "Sending..." : "Resend OTP"}
+                    </button>
+                  )}
+                </div>
 
                 <button
                   type="button"
