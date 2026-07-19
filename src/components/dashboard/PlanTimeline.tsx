@@ -81,8 +81,7 @@ function SessionBlock({
           <TaskCheckbox
             key={`${planId}-${day}-${startIndex + idx}`}
             planId={planId}
-            day={day}
-            taskIndex={startIndex + idx}
+            taskId={task.taskId}
             completed={task.completed}
             task={task.task}
             estimatedMinutes={task.estimatedMinutes}

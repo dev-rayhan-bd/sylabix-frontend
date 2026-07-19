@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMyPlans, useChat, type ChatMessage } from "@/src/hooks/useStudyPlans";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,13 @@ export function ChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [selectedSyllabusId, setSelectedSyllabusId] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: plansData } = useMyPlans();
   const chat = useChat();
 
-  const plans = plansData?.data ?? [];
+  const plans = plansData?.plans ?? [];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,14 +24,14 @@ export function ChatBubble() {
 
   const handleSend = () => {
     const trimmed = input.trim();
-    if (!trimmed || !selectedPlanId) return;
+    if (!trimmed || !selectedSyllabusId) return;
 
     const userMsg: ChatMessage = { role: "user", content: trimmed };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
 
     chat.mutate(
-      { planId: selectedPlanId, question: trimmed },
+      { syllabusId: selectedSyllabusId, question: trimmed },
       {
         onSuccess: (res) => {
           setMessages((prev) => [
@@ -90,17 +90,17 @@ export function ChatBubble() {
               </button>
             </div>
 
-            {/* Plan Selector */}
+            {/* Syllabus Selector */}
             <div className="border-b border-white/5 px-4 py-2">
               <select
-                value={selectedPlanId}
-                onChange={(e) => setSelectedPlanId(e.target.value)}
+                value={selectedSyllabusId}
+                onChange={(e) => setSelectedSyllabusId(e.target.value)}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
               >
                 <option value="" className="bg-[#0a0f1a]">
                   Select a syllabus to ask about…
                 </option>
-                {plans?.map((p) => (
+                {plans.map((p) => (
                   <option key={p._id} value={p._id} className="bg-[#0a0f1a]">
                     {p.subject}
                   </option>
@@ -196,16 +196,16 @@ export function ChatBubble() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder={
-                    selectedPlanId
+                    selectedSyllabusId
                       ? "Ask a question…"
                       : "Select a syllabus first"
                   }
-                  disabled={!selectedPlanId || chat.isPending}
+                  disabled={!selectedSyllabusId || chat.isPending}
                   className="rounded-xl border-white/10 bg-white/5 text-sm"
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={!input.trim() || !selectedPlanId || chat.isPending}
+                  disabled={!input.trim() || !selectedSyllabusId || chat.isPending}
                   size="icon"
                   className="shrink-0 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
                 >

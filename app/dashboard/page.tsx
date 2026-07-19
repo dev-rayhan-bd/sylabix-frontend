@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import {
   useDashboardSummary,
-  useTodayTasks,
-  useToggleTask,
+  type DashboardTodayTaskGroup,
 } from "@/src/hooks/useStudyPlans";
 import { useAuthStore } from "@/src/store/auth-store";
 import {
@@ -21,6 +20,34 @@ const item = {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, damping: 20 } },
 };
+
+/* ─── Flatten today's task groups into individual items ──── */
+function flattenTodayTasks(groups: DashboardTodayTaskGroup[]) {
+  const items: {
+    planId: string;
+    subject: string;
+    topic: string;
+    day: number;
+    taskIndex: number;
+    title: string;
+    isCompleted: boolean;
+  }[] = [];
+
+  for (const g of groups) {
+    g.tasks.forEach((t, i) => {
+      items.push({
+        planId: g.planId,
+        subject: g.subject,
+        topic: g.topic,
+        day: g.day,
+        taskIndex: i,
+        title: t.title,
+        isCompleted: t.isCompleted,
+      });
+    });
+  }
+  return items;
+}
 
 /* ─── Summary Stat Cards ─────────────────────────────── */
 
@@ -62,11 +89,9 @@ function StatCard({
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data: summary, isLoading: summaryLoading } = useDashboardSummary();
-  const { data: todayData, isLoading: todayLoading } = useTodayTasks();
-  const toggleTask = useToggleTask("today");
 
   const summaryData = summary?.data;
-  const todayTasks = todayData?.data ?? [];
+  const todayTasks = flattenTodayTasks(summaryData?.todaysTasks ?? []);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -114,7 +139,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label="Today's Tasks"
-            value={summaryData?.todayTasksCount ?? 0}
+            value={todayTasks.length}
             icon={
               <svg className="size-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -124,7 +149,11 @@ export default function DashboardPage() {
           />
           <StatCard
             label="Next Exam"
-            value={summaryData?.nextExamCountdown ?? "—"}
+            value={
+              summaryData?.nextExam
+                ? `${summaryData.nextExam.daysLeft}d`
+                : "—"
+            }
             icon={
               <svg className="size-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -134,7 +163,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label="Total Plans"
-            value={summaryData?.totalPlans ?? 0}
+            value={summaryData?.totalStats?.totalPlans ?? 0}
             icon={
               <svg className="size-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -154,7 +183,7 @@ export default function DashboardPage() {
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">
-            Today&apos;s Focus
+            Today&apos;s Completed Tasks
           </h2>
           <Link
             href="/dashboard/my-plans"
@@ -164,7 +193,7 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {todayLoading ? (
+        {summaryLoading ? (
           <TodayFocusSkeleton />
         ) : todayTasks.length === 0 ? (
           <div className="py-10 text-center">
@@ -189,39 +218,27 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="flex items-center gap-3 rounded-xl bg-white/3 px-4 py-3 transition-colors hover:bg-white/5"
+                className="flex items-center gap-3 rounded-xl bg-white/3 px-4 py-3"
               >
-                <button
-                  onClick={() =>
-                    toggleTask.mutate({
-                      day: task.day,
-                      taskIndex: task.taskIndex,
-                    })
-                  }
-                  className={`flex size-6 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${
-                    task.completed
-                      ? "border-emerald-500 bg-emerald-500/20 text-emerald-400"
-                      : "border-white/20 hover:border-emerald-500/50"
+                <div
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-lg ${
+                    task.isCompleted
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-white/10 text-muted-foreground"
                   }`}
                 >
-                  {task.completed && (
+                  {task.isCompleted ? (
                     <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
+                  ) : (
+                    <span className="size-1.5 rounded-full bg-current" />
                   )}
-                </button>
+                </div>
                 <div className="min-w-0 flex-1">
-                  <p
-                    className={`text-sm ${
-                      task.completed
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground"
-                    }`}
-                  >
-                    {task.task}
-                  </p>
+                  <p className="text-sm text-foreground">{task.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {task.planSubject} · {task.session}
+                    {task.subject} · {task.topic}
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">

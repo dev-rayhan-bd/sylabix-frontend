@@ -10,6 +10,7 @@ import type { AxiosError } from "axios";
 
 /** Raw task returned by the API (inside aiPlan sessions) */
 export type ApiAiPlanTask = {
+  _id?: string;
   title: string;
   estimatedMinutes: number;
   isCompleted: boolean;
@@ -42,6 +43,7 @@ export type ApiStudyPlanData = {
 /* ─── Normalised types (used by UI) ──────────────────── */
 
 export type DayTask = {
+  taskId?: string;
   task: string;
   completed: boolean;
   estimatedMinutes?: number;
@@ -97,6 +99,7 @@ export function transformPlanData(api: ApiStudyPlanData): StudyPlan {
         return {
           topic: s.topic,
           tasks: s.tasks.map((t) => ({
+            taskId: t._id,
             task: t.title,
             completed: t.isCompleted,
             estimatedMinutes: t.estimatedMinutes,
@@ -128,13 +131,39 @@ export function transformPlanData(api: ApiStudyPlanData): StudyPlan {
   };
 }
 
-export type DashboardSummary = {
-  overallProgress: number;
-  todayTasksCount: number;
-  nextExamCountdown: string;
-  totalPlans: number;
+export type DashboardSummaryTask = {
+  title: string;
+  isCompleted: boolean;
 };
 
+export type DashboardTodayTaskGroup = {
+  planId: string;
+  subject: string;
+  day: number;
+  topic: string;
+  tasks: DashboardSummaryTask[];
+};
+
+export type DashboardNextExam = {
+  subject: string;
+  daysLeft: number;
+};
+
+export type DashboardTotalStats = {
+  activePlans: number;
+  completedPlans: number;
+  totalPlans: number;
+  totalTasksCompleted: number;
+};
+
+export type DashboardSummary = {
+  todaysTasks: DashboardTodayTaskGroup[];
+  overallProgress: number;
+  nextExam: DashboardNextExam;
+  totalStats: DashboardTotalStats;
+};
+
+/** Flattened task used by the Today's Focus UI */
 export type TodayTask = {
   planId: string;
   planSubject: string;
@@ -149,6 +178,11 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   sources?: string[];
+};
+
+export type SyllabusOption = {
+  _id: string;
+  subject: string;
 };
 
 /* ─── API Response wrappers ──────────────────────────────── */
@@ -170,6 +204,8 @@ type PlanResponse = {
 
 type DashboardResponse = {
   success: boolean;
+  message: string;
+  statusCode: number;
   data: DashboardSummary;
 };
 
@@ -181,15 +217,25 @@ type TodayTasksResponse = {
 type CreatePlanResponse = {
   success: boolean;
   message: string;
+  statusCode: number;
   data: ApiStudyPlanData;
 };
 
 type ChatResponse = {
   success: boolean;
+  message: string;
+  statusCode: number;
   data: {
     answer: string;
     sources: string[];
   };
+};
+
+type SyllabusDropdownResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: SyllabusOption[];
 };
 
 /* ─── Helper ────────────────────────────────────────────── */
@@ -237,8 +283,9 @@ export function useCreatePlan() {
       formData.append("syllabus", payload.pdfFile);
       return api
         .post<CreatePlanResponse>("/study-plans/create-plan", formData, {
+          timeout: 180_000,
           headers: { "Content-Type": "multipart/form-data" },
-          timeout: 60_000,
+          // Note: axios auto-sets boundary when Content-Type is multipart/form-data with FormData body
         })
         .then((res) => res.data);
     },
@@ -307,7 +354,7 @@ export function useToggleTask(planId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { day: number; taskIndex: number }) =>
+    mutationFn: (payload: { taskId: string }) =>
       api
         .patch<{ success: boolean; data: StudyPlan }>(
           `/study-plans/toggle-task/${planId}`,
@@ -323,17 +370,17 @@ export function useToggleTask(planId: string) {
         queryClient.setQueryData<{ success: boolean; data: StudyPlan }>(["plan", planId], (old) => {
           if (!old) return old;
           const updated = JSON.parse(JSON.stringify(old)) as { success: boolean; data: StudyPlan };
-          const dayPlan = updated.data.days.find(
-            (d) => d.day === payload.day
-          );
-          if (dayPlan) {
+          for (const dayPlan of updated.data.days) {
             const allTasks = [
               ...dayPlan.sessions.Morning.tasks,
               ...dayPlan.sessions.Afternoon.tasks,
               ...dayPlan.sessions.Evening.tasks,
             ];
-            const task = allTasks[payload.taskIndex];
-            if (task) task.completed = !task.completed;
+            const task = allTasks.find((t) => t.taskId === payload.taskId);
+            if (task) {
+              task.completed = !task.completed;
+              break;
+            }
           }
           return updated;
         });
@@ -357,9 +404,17 @@ export function useToggleTask(planId: string) {
 
 /* ─── RAG Chat ──────────────────────────────────────────── */
 
+export function useSyllabusDropdown() {
+  return useQuery({
+    queryKey: ["syllabus-dropdown"],
+    queryFn: () => get<SyllabusDropdownResponse>("/study-plans/dropdown/subjects"),
+    staleTime: 300_000,
+  });
+}
+
 export function useChat() {
   return useMutation({
-    mutationFn: (payload: { planId: string; question: string }) =>
+    mutationFn: (payload: { syllabusId: string; question: string }) =>
       post<ChatResponse>("/chat/ask-question", payload),
     onError: (err: Error) => {
       toast.error(getErrorMessage(err, "Failed to get answer."));

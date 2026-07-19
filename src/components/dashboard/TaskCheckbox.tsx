@@ -4,15 +4,13 @@ import { useToggleTask } from "@/src/hooks/useStudyPlans";
 
 export function TaskCheckbox({
   planId,
-  day,
-  taskIndex,
+  taskId,
   completed,
   task,
   estimatedMinutes,
 }: {
   planId: string;
-  day: number;
-  taskIndex: number;
+  taskId?: string;
   completed: boolean;
   task: string;
   estimatedMinutes?: number;
@@ -21,7 +19,7 @@ export function TaskCheckbox({
 
   return (
     <button
-      onClick={() => toggleTask.mutate({ day, taskIndex })}
+      onClick={() => taskId && toggleTask.mutate({ taskId })}
       disabled={toggleTask.isPending}
       className="group flex items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/3"
     >
