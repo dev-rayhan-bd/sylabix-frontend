@@ -4,7 +4,7 @@ import { useAuthStore } from "@/src/store/auth-store";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1",
   headers: { "Content-Type": "application/json" },
-  timeout: 15_000,
+  timeout: 60_000,
 });
 
 // Attach JWT token to every request
@@ -74,6 +74,19 @@ export async function putFormData<
     formData.append("image", imageFile);
   }
   const { data } = await api.put<T>(url, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+export async function patchFormData<
+  T>(url: string, jsonData: Record<string, unknown>, imageFile?: File | null) {
+  const formData = new FormData();
+  formData.append("body", JSON.stringify(jsonData));
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+  const { data } = await api.patch<T>(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;

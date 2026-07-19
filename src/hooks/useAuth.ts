@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuthStore, type User } from "@/src/store/auth-store";
-import { post, postFormData, get, putFormData, del } from "@/src/services/api";
+import { post, postFormData, get, patchFormData, del } from "@/src/services/api";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 
@@ -29,6 +29,7 @@ type ApiUser = {
   firstName: string;
   lastName: string;
   email: string;
+  image?: string;
   avatar?: string;
   createdAt?: string;
   [key: string]: unknown;
@@ -68,7 +69,7 @@ function mapUser(apiUser: ApiUser): User {
     id: apiUser._id,
     name: `${apiUser.firstName} ${apiUser.lastName}`,
     email: apiUser.email,
-    avatar: apiUser.avatar,
+    avatar: apiUser.image ?? apiUser.avatar,
     createdAt: apiUser.createdAt,
   };
 }
@@ -250,7 +251,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (payload: EditProfilePayload) => {
       const { image, ...jsonData } = payload;
-      return putFormData<ProfileResponse>("/user/edit-profile", jsonData, image);
+      return patchFormData<ProfileResponse>("/user/edit-profile", jsonData, image);
     },
     onSuccess: (res) => {
       const updated = mapUser(res.data);

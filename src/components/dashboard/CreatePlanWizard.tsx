@@ -285,12 +285,12 @@ export function CreatePlanWizard() {
                   </label>
                   <FormSelect
                     value={difficulty}
-                    onValueChange={(val) => setValue("difficulty", val as "easy" | "medium" | "hard")}
+                    onValueChange={(val) => setValue("difficulty", val as "Easy" | "Medium" | "Hard")}
                     placeholder="Select difficulty"
                     options={[
-                      { value: "easy", label: "🟢 Easy — Relaxed pace" },
-                      { value: "medium", label: "🟡 Medium — Balanced" },
-                      { value: "hard", label: "🔴 Hard — Intensive" },
+                      { value: "Easy", label: "🟢 Easy — Relaxed pace" },
+                      { value: "Medium", label: "🟡 Medium — Balanced" },
+                      { value: "Hard", label: "🔴 Hard — Intensive" },
                     ]}
                   />
                   {errors.difficulty && (

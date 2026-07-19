@@ -8,12 +8,14 @@ export function TaskCheckbox({
   taskIndex,
   completed,
   task,
+  estimatedMinutes,
 }: {
   planId: string;
   day: number;
   taskIndex: number;
   completed: boolean;
   task: string;
+  estimatedMinutes?: number;
 }) {
   const toggleTask = useToggleTask(planId);
 
@@ -36,15 +38,22 @@ export function TaskCheckbox({
           </svg>
         )}
       </div>
-      <span
-        className={`text-sm leading-relaxed ${
-          completed
-            ? "text-muted-foreground line-through"
-            : "text-foreground"
-        }`}
-      >
-        {task}
-      </span>
+      <div className="flex-1 min-w-0">
+        <span
+          className={`text-sm leading-relaxed ${
+            completed
+              ? "text-muted-foreground line-through"
+              : "text-foreground"
+          }`}
+        >
+          {task}
+        </span>
+      </div>
+      {estimatedMinutes && !completed && (
+        <span className="mt-0.5 shrink-0 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+          {estimatedMinutes}m
+        </span>
+      )}
     </button>
   );
 }

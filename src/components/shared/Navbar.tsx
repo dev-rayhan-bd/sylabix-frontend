@@ -128,7 +128,7 @@ function MyProfileDialog({
   const name = profile
     ? `${profile.firstName} ${profile.lastName}`
     : user?.name ?? "User";
-  const avatar = resolveAvatar(profile?.avatar) ?? user?.avatar;
+  const avatar = resolveAvatar(profile?.image) ?? user?.avatar;
   const email = profile?.email ?? user?.email ?? "";
   const institution = (profile?.institution as string) ?? "";
 
@@ -263,7 +263,7 @@ function EditProfileDialog({
                 </div>
               ) : (
                 <UserAvatar
-                  src={profile?.avatar}
+                  src={resolveAvatar(profile?.image)}
                   name={profile ? `${profile.firstName} ${profile.lastName}` : "User"}
                   size="lg"
                 />
@@ -461,7 +461,7 @@ export function Navbar() {
   const displayName = profile
     ? `${profile.firstName} ${profile.lastName}`
     : user?.name ?? "User";
-  const displayAvatar = resolveAvatar(profile?.avatar) ?? user?.avatar;
+  const displayAvatar = resolveAvatar(profile?.image) ?? user?.avatar;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

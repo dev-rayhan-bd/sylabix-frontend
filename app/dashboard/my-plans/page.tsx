@@ -13,7 +13,7 @@ const container = {
 
 export default function MyPlansPage() {
   const { data, isLoading } = useMyPlans();
-  const plans = data?.data ?? [];
+  const plans = data?.plans ?? [];
 
   return (
     <div className="space-y-6">

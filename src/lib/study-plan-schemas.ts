@@ -7,7 +7,7 @@ export const createPlanSchema = z
     subject: z.string().min(2, "Subject must be at least 2 characters"),
     startDate: z.string().min(1, "Start date is required"),
     examDate: z.string().min(1, "Exam date is required"),
-    difficulty: z.enum(["easy", "medium", "hard"], {
+    difficulty: z.enum(["Easy", "Medium", "Hard"], {
       message: "Select a difficulty level",
     }),
   })

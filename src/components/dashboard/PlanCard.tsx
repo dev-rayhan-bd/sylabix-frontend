@@ -27,7 +27,7 @@ function getPlanProgress(plan: StudyPlan): number {
   let completed = 0;
   for (const day of plan.days) {
     for (const session of Object.values(day.sessions)) {
-      for (const task of session) {
+      for (const task of session.tasks) {
         total++;
         if (task.completed) completed++;
       }
@@ -46,9 +46,9 @@ function getDaysLeft(examDate: string): string {
 }
 
 const difficultyColors: Record<string, string> = {
-  easy: "bg-emerald-500/10 text-emerald-400",
-  medium: "bg-amber-500/10 text-amber-400",
-  hard: "bg-red-500/10 text-red-400",
+  Easy: "bg-emerald-500/10 text-emerald-400",
+  Medium: "bg-amber-500/10 text-amber-400",
+  Hard: "bg-red-500/10 text-red-400",
 };
 
 export function PlanCard({ plan }: { plan: StudyPlan }) {
