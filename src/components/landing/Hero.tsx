@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { HiOutlineBolt, HiArrowRight } from "react-icons/hi2";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuthStore } from "@/src/store/auth-store";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,6 +16,8 @@ const fadeUp = {
 };
 
 export function Hero() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   return (
     <section
       id="home"
@@ -83,13 +86,13 @@ export function Hero() {
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Link
-            href="/register"
+            href={isAuthenticated ? "/dashboard" : "/auth/register"}
             className={buttonVariants({
               size: "lg",
               className: "glow-sm group h-12 px-8 text-base",
             })}
           >
-            Get Started Free
+            {isAuthenticated ? "Go to Dashboard" : "Get Started Free"}
             <HiArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link

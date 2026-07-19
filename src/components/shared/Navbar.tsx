@@ -43,6 +43,17 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
+/* ─── Avatar URL resolver ────────────────────────────── */
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1")
+  .replace(/\/api\/v1\/?$/, "");
+
+function resolveAvatar(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 /* ─── Avatar helper ──────────────────────────────────── */
 
 function UserAvatar({
@@ -101,6 +112,66 @@ function UserAvatar({
   );
 }
 
+/* ─── My Profile Dialog (read-only) ─────────────────── */
+
+function MyProfileDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data: profileRes } = useMyProfile(open);
+  const profile = profileRes?.data;
+  const { user } = useAuthStore();
+
+  const name = profile
+    ? `${profile.firstName} ${profile.lastName}`
+    : user?.name ?? "User";
+  const avatar = resolveAvatar(profile?.avatar) ?? user?.avatar;
+  const email = profile?.email ?? user?.email ?? "";
+  const institution = (profile?.institution as string) ?? "";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl">My Profile</DialogTitle>
+          <DialogDescription>Your account information</DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center gap-4 py-4">
+          <UserAvatar src={avatar} name={name} size="lg" />
+          <div className="w-full space-y-3">
+            <div className="rounded-xl border border-white/5 bg-white/3 p-4 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Full Name</p>
+                <p className="text-sm font-medium text-foreground">{name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Email</p>
+                <p className="text-sm font-medium text-foreground">{email}</p>
+              </div>
+              {institution && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Institution</p>
+                  <p className="text-sm font-medium text-foreground">{institution}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <DialogClose className={buttonVariants({ variant: "outline" })}>
+            Close
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── Edit Profile Dialog ────────────────────────────── */
 
 function EditProfileDialog({
@@ -126,7 +197,7 @@ function EditProfileDialog({
     if (open && profile) {
       setFirstName(profile.firstName ?? "");
       setLastName(profile.lastName ?? "");
-      setInstitution(profile.institution ?? "");
+      setInstitution((profile.institution as string) ?? "");
       setImageFile(null);
       setImagePreview(null);
     }
@@ -377,6 +448,7 @@ function DeleteAccountDialog({
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -389,7 +461,7 @@ export function Navbar() {
   const displayName = profile
     ? `${profile.firstName} ${profile.lastName}`
     : user?.name ?? "User";
-  const displayAvatar = profile?.avatar ?? user?.avatar;
+  const displayAvatar = resolveAvatar(profile?.avatar) ?? user?.avatar;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -505,7 +577,7 @@ export function Navbar() {
                 <div className="p-1.5">
                   <DropdownMenuItem
                     className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm"
-                    onClick={() => setEditOpen(true)}
+                    onClick={() => setProfileOpen(true)}
                   >
                     <svg
                       className="size-4 text-muted-foreground"
@@ -719,7 +791,7 @@ export function Navbar() {
                       <button
                         onClick={() => {
                           setIsOpen(false);
-                          setEditOpen(true);
+                          setProfileOpen(true);
                         }}
                         className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                       >
@@ -847,6 +919,7 @@ export function Navbar() {
       </AnimatePresence>
 
       {/* ── Dialogs ── */}
+      <MyProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
       <EditProfileDialog open={editOpen} onOpenChange={setEditOpen} />
       <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
     </header>
