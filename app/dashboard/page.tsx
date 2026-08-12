@@ -183,7 +183,7 @@ export default function DashboardPage() {
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">
-            Today&apos;s Completed Tasks
+            Today&apos;s Focus
           </h2>
           <Link
             href="/dashboard/my-plans"
